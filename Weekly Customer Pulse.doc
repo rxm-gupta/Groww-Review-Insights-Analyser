@@ -1,0 +1,68 @@
+﻿
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Groww Weekly Customer Pulse</title>
+        <style>
+            body { font-family: Calibri, Arial, sans-serif; line-height: 1.5; color: #0f172a; padding: 20px; }
+            h1 { color: #071013; font-size: 18pt; margin-bottom: 4pt; }
+            h2 { color: #00B386; font-size: 13pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 4pt; margin-top: 18pt; }
+            .header-meta { color: #00B386; font-size: 10pt; font-weight: bold; margin-bottom: 6pt; }
+            ul { margin-top: 6pt; padding-left: 20pt; }
+            li { margin-bottom: 6pt; font-size: 10pt; color: #1e293b; }
+        </style>
+        </head>
+        <body>
+            <div class="header-meta">GROWW WEEKLY CUSTOMER PULSE &bull; (Sep 10 – Sep 17, 2026)</div>
+            <h1>Customer Voice & Product Health Summary</h1>
+            <p style="color: #64748b; font-size: 10pt; margin-top: 0;">Weekly digest synthesized across Google Play Store & iOS App Store. All user identifiers strictly scrubbed.</p>
+            
+            <h2>Top 3 User Friction Themes</h2>
+            
+            <div style="margin-bottom: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc;">
+                <p style="margin: 0 0 4px 0; font-size: 11pt;"><strong>1. Market-Open Latency & Stability</strong> &nbsp; <span style="color: #64748b; font-size: 9pt;">[45% Volume - P0 CRITICAL]</span></p>
+                <p style="margin: 0; color: #334155; font-size: 10pt;">Frequent app crashes, frozen charts, and network timeouts during the 09:15–09:45 AM opening rush, causing missed exits.</p>
+            </div>
+        
+            <div style="margin-bottom: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc;">
+                <p style="margin: 0 0 4px 0; font-size: 11pt;"><strong>2. Withdrawal Latency & Settlement</strong> &nbsp; <span style="color: #64748b; font-size: 9pt;">[24% Volume - P1 HIGH]</span></p>
+                <p style="margin: 0; color: #334155; font-size: 10pt;">Wallet is debited instantly but bank credits stall 3–5 days with repetitive scripted bot responses.</p>
+            </div>
+        
+            <div style="margin-bottom: 12px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; background-color: #f8fafc;">
+                <p style="margin: 0 0 4px 0; font-size: 11pt;"><strong>3. Other / Support</strong> &nbsp; <span style="color: #64748b; font-size: 9pt;">[9% Volume - P2 MEDIUM]</span></p>
+                <p style="margin: 0; color: #334155; font-size: 10pt;">Unexpected brokerage deductions, daily MTF margin interest, and auto square-off penalties wiping out small profits.</p>
+            </div>
+        
+
+            <h2>What Users Are Saying (3 Real Quotes)</h2>
+            
+            <blockquote style="margin: 8px 0; padding: 10px 14px; border-left: 4px solid #00D09C; background-color: #f1f5f9;">
+                <p style="margin: 0 0 4px 0; font-style: italic; color: #1e293b;">"Support ignored my ticket Opened three support tickets for the same withdrawal delay issue and got no resolution, just copy paste replies."</p>
+                <small style="color: #64748b; font-size: 9pt;">★ 2★ | Play Store
+•
+Market-Open Latency & Stability</small>
+            </blockquote>
+        
+            <blockquote style="margin: 8px 0; padding: 10px 14px; border-left: 4px solid #00D09C; background-color: #f1f5f9;">
+                <p style="margin: 0 0 4px 0; font-style: italic; color: #1e293b;">"App froze mid transaction App froze while I was completing a payment, couldn't tell if money was deducted or not, quite scary."</p>
+                <small style="color: #64748b; font-size: 9pt;">★ 1★ | Play Store
+•
+Withdrawal Latency & Settlement</small>
+            </blockquote>
+        
+            <blockquote style="margin: 8px 0; padding: 10px 14px; border-left: 4px solid #00D09C; background-color: #f1f5f9;">
+                <p style="margin: 0 0 4px 0; font-style: italic; color: #1e293b;">"Support ticket closed without fix My support ticket about a stuck withdrawal was closed as 'resolved' without actually returning my money."</p>
+                <small style="color: #64748b; font-size: 9pt;">★ 2★ | App Store
+•
+Market-Open Latency & Stability</small>
+            </blockquote>
+        
+
+            <h2>Three Action Ideas</h2>
+            <ul>
+                <li><strong>[P0 CORE PLATFORM] Market-Open Read-Only Failover Cache</strong> (Infra Pod)<br><span style="color:#475569;">Decouple watchlist and portfolio viewing from the order execution engine to survive 09:15–09:45 AM opening load spikes.</span></li>
+                <li><strong>[P1 FINOPS] Visual Fund Settlement Tracker with UTR</strong> (Payments Pod)<br><span style="color:#475569;">Expose real-time clearing milestones (Initiated &rarr; Clearing House &rarr; Bank UTR &rarr; Credit) in-app to eliminate support tickets.</span></li>
+                <li><strong>[P2 TRADING UX] Pre-Trade MTF & Fee Modal</strong> (Growth & Pricing Pod)<br><span style="color:#475569;">Embed an upfront breakdown of daily margin interest and square-off charges on the order slip before swipe-to-trade.</span></li>
+            </ul>
+        </body>
+        </html>
+    

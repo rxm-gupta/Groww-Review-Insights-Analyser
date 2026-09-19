@@ -1,0 +1,28 @@
+body {
+    background-color: #071013;
+    color: #E2E8F0;
+}
+
+.glass-card {
+    background-color: #0B1518;
+    border: 1px solid #1A2C32;
+}
+
+.hide {
+    display: none !important;
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+::-webkit-scrollbar-track {
+    background: #071013;
+}
+::-webkit-scrollbar-thumb {
+    background: #1A2C32;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #00D09C;
+}
