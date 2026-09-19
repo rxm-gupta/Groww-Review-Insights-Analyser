@@ -12,6 +12,7 @@ body {
     display: none !important;
 }
 
+/* Custom scrollbars */
 ::-webkit-scrollbar {
     width: 7px;
     height: 7px;
@@ -25,4 +26,31 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #00D09C;
+}
+
+/* Clean Print to PDF Stylesheet */
+@media print {
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    header, nav, #step-import, #step-preview, #tab-legend, .glass-card:has(#email-body) {
+        display: none !important;
+    }
+    #report-card {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+    #report-card * {
+        color: #111111 !important;
+        text-shadow: none !important;
+    }
+    #report-card .border {
+        border-color: #e2e8f0 !important;
+    }
 }

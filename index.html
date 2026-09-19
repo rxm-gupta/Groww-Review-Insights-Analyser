@@ -48,23 +48,30 @@
                     </div>
                     <h1 class="text-base font-bold text-white tracking-wide">Groww Pulse</h1>
                 </div>
-                <!-- Navigation Tabs -->
                 <nav class="flex gap-1 bg-[#060D0F] p-1 rounded-lg border border-[#162529]">
                     <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-[#16272C] text-white transition-all shadow-sm">Dashboard</button>
                     <button id="tab-btn-legend" onclick="switchTab('legend')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-400 hover:text-white transition-all">Theme Legend & Run Guide</button>
                 </nav>
             </div>
             <div class="flex items-center gap-3">
+                <!-- Zero PII Badge -->
                 <span class="px-3 py-1 bg-emerald-500/10 text-groww border border-emerald-500/20 rounded-full text-xs font-medium flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-[11px]"></i> Zero PII · 100% Client-Side
                 </span>
+
+                <!-- GitHub Project Link -->
+                <a href="https://github.com/rxm-gupta/Groww-Review-Insights-Analyser" target="_blank" rel="noopener noreferrer" class="px-3 py-1 bg-[#14252A] hover:bg-[#1B3239] text-slate-300 hover:text-white border border-[#20373E] rounded-full text-xs font-medium flex items-center gap-2 transition-all shadow-sm">
+                    <i class="fa-brands fa-github text-sm text-white"></i> GitHub
+                </a>
             </div>
         </div>
     </header>
 
     <main class="flex-grow p-6 max-w-6xl mx-auto w-full">
         
-        <!-- TAB 1: DASHBOARD -->
+        <!-- ========================================== -->
+        <!-- TAB 1: DASHBOARD                           -->
+        <!-- ========================================== -->
         <div id="tab-dashboard" class="space-y-6">
             
             <!-- STEP 1: IMPORT CSV -->
@@ -121,6 +128,7 @@
                             <tbody id="preview-tbody" class="divide-y divide-[#152328]"></tbody>
                         </table>
                     </div>
+                    <div id="preview-footer-note" class="bg-[#0B1518] px-4 py-2 border-t border-[#1A2C32] text-xs text-slate-500"></div>
                 </div>
             </div>
 
@@ -130,7 +138,7 @@
                 <!-- Customer Voice & Product Health Summary Card -->
                 <div id="report-card" class="glass-card rounded-2xl p-8 border border-[#16272C] shadow-2xl">
                     
-                    <!-- Header Bar (Button integrated here) -->
+                    <!-- Header Bar with Download Button & Word Count Badge -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                         <div class="flex items-center gap-2 text-xs font-semibold tracking-wide">
                             <span class="inline-block w-2 h-2 rounded-full bg-groww shadow-sm shadow-groww"></span>
@@ -140,7 +148,7 @@
                         </div>
                         
                         <div class="flex items-center gap-3">
-                            <!-- Download PDF / Doc Button with Dropdown -->
+                            <!-- Download PDF / Doc Dropdown Button -->
                             <div class="relative" data-html2canvas-ignore="true">
                                 <button onclick="toggleDownloadMenu(event)" id="download-dropdown-btn" class="px-3 py-1 bg-[#14252A] hover:bg-[#1B3239] text-slate-200 hover:text-white font-semibold text-xs rounded-md transition-all flex items-center gap-1.5 border border-[#20373E] shadow-sm">
                                     <i class="fa-solid fa-arrow-down-to-bracket text-groww"></i> Download Note <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5"></i>
@@ -158,7 +166,7 @@
 
                             <!-- Word Count Badge -->
                             <span id="word-count-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
-                                <i class="fa-solid fa-feather-pointed"></i> <span id="word-count-text">241 words (≤250w Pass)</span>
+                                <i class="fa-solid fa-feather-pointed"></i> <span id="word-count-text">0 words (≤250w Pass)</span>
                             </span>
                         </div>
                     </div>
@@ -166,7 +174,7 @@
                     <h2 class="text-3xl font-extrabold text-white tracking-tight mb-1.5">Customer Voice & Product Health Summary</h2>
                     <p class="text-sm text-slate-400 mb-8 font-normal">Weekly digest synthesized across Google Play Store & iOS App Store. All user identifiers strictly scrubbed.</p>
 
-                    <!-- TOP 3 USER FRICTION THEMES -->
+                    <!-- TOP USER FRICTION THEMES -->
                     <div class="mb-10">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xs font-bold text-groww uppercase tracking-wider flex items-center gap-2">
@@ -174,23 +182,21 @@
                             </h3>
                             <span class="text-xs text-slate-500 font-medium">Ranked by volume share</span>
                         </div>
-
-                        <!-- 3 Cards Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="themes-grid-container"></div>
                     </div>
 
-                    <!-- WHAT USERS ARE SAYING (3 REAL QUOTES) -->
+                    <!-- WHAT USERS ARE SAYING -->
                     <div class="mb-10">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-groww uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-quote-left"></i> What Users Are Saying (3 Real Quotes)
+                            <h3 id="quotes-header-title" class="text-xs font-bold text-groww uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-quote-left"></i> What Users Are Saying
                             </h3>
                             <span class="text-xs text-slate-500 font-medium">Sanitized Verbatims</span>
                         </div>
                         <div class="space-y-3" id="quotes-container"></div>
                     </div>
 
-                    <!-- THREE ACTION IDEAS -->
+                    <!-- DYNAMIC ACTION IDEAS -->
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xs font-bold text-groww uppercase tracking-wider flex items-center gap-2">
@@ -198,38 +204,7 @@
                             </h3>
                             <span class="text-xs text-slate-500 font-medium lowercase">P0 to P2 Priorities</span>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0E1A1E] border border-[#182B31] p-4 rounded-xl hover:border-slate-600 transition-colors gap-4">
-                                <div class="flex items-start sm:items-center gap-3">
-                                    <span class="px-2.5 py-1 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-extrabold rounded tracking-wider">P0 CORE PLATFORM</span>
-                                    <div>
-                                        <h4 class="text-sm font-bold text-white">Market-Open Read-Only Failover Cache</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Decouple watchlist and portfolio viewing from the order execution engine to survive 09:15–09:45 AM opening load spikes.</p>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-1 bg-[#14252A] text-slate-400 text-[11px] font-medium rounded self-start sm:self-auto border border-[#1E353C]">Infra Pod</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0E1A1E] border border-[#182B31] p-4 rounded-xl hover:border-slate-600 transition-colors gap-4">
-                                <div class="flex items-start sm:items-center gap-3">
-                                    <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-extrabold rounded tracking-wider">P1 FINOPS</span>
-                                    <div>
-                                        <h4 class="text-sm font-bold text-white">Visual Fund Settlement Tracker with UTR</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Expose real-time clearing milestones (Initiated → Clearing House → Bank UTR → Credit) in-app to eliminate support tickets.</p>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-1 bg-[#14252A] text-slate-400 text-[11px] font-medium rounded self-start sm:self-auto border border-[#1E353C]">Payments Pod</span>
-                            </div>
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0E1A1E] border border-[#182B31] p-4 rounded-xl hover:border-slate-600 transition-colors gap-4">
-                                <div class="flex items-start sm:items-center gap-3">
-                                    <span class="px-2.5 py-1 bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-extrabold rounded tracking-wider">P2 TRADING UX</span>
-                                    <div>
-                                        <h4 class="text-sm font-bold text-white">Pre-Trade MTF & Fee Modal</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Embed an upfront breakdown of daily margin interest and square-off charges on the order slip before swipe-to-trade.</p>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-1 bg-[#14252A] text-slate-400 text-[11px] font-medium rounded self-start sm:self-auto border border-[#1E353C]">Growth & Pricing</span>
-                            </div>
-                        </div>
+                        <div class="space-y-3" id="actions-container"></div>
                     </div>
                 </div>
 
@@ -239,7 +214,7 @@
                         <h3 class="text-sm font-bold text-white flex items-center gap-2">
                             <i class="fa-regular fa-envelope text-groww"></i> Distribute Pulse Note
                         </h3>
-                        <span class="text-xs text-slate-400">Review & edit before copying or drafting</span>
+                        <span class="text-xs text-slate-400">Review, copy, or draft in Gmail</span>
                     </div>
                     
                     <div class="p-6 space-y-4 bg-[#091417]">
@@ -260,10 +235,10 @@
                             <textarea id="email-body" rows="14" class="w-full bg-[#0D181C] border border-[#1A2C32] rounded-xl p-4 text-sm text-slate-200 focus:border-groww focus:ring-1 focus:ring-groww outline-none resize-y transition-colors leading-relaxed shadow-inner font-mono"></textarea>
                         </div>
                         
-                        <!-- Action Footer: Draft an Email & Copy Email -->
+                        <!-- Action Footer -->
                         <div class="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-[#16272C]/60 pt-4">
                             <button onclick="draftEmail()" class="w-full sm:w-auto px-5 py-2.5 bg-[#14252A] hover:bg-[#1B3239] text-slate-200 hover:text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center gap-2 border border-[#20373E]">
-                                <i class="fa-brands fa-google text-[#ea4335]"></i> Draft an Email
+                                <i class="fa-brands fa-google text-[#ea4335]"></i> Draft Email
                             </button>
                             <button id="copy-btn" onclick="copyEmail()" class="w-full sm:w-auto px-6 py-2.5 bg-groww text-slate-950 hover:bg-groww-dark font-extrabold text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-groww/20">
                                 <i class="fa-regular fa-copy"></i> Copy Email
@@ -274,11 +249,13 @@
             </div>
         </div>
 
-        <!-- TAB 2: THEME LEGEND & PLAYBOOK -->
+        <!-- ========================================== -->
+        <!-- TAB 2: THEME LEGEND & PLAYBOOK             -->
+        <!-- ========================================== -->
         <div id="tab-legend" class="hide space-y-6">
             <div class="glass-card rounded-2xl p-8 border border-[#16272C]">
                 <h2 class="text-xl font-bold text-white mb-6 border-b border-[#1A2C32] pb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-tags text-groww"></i> Theme Taxonomy
+                    <i class="fa-solid fa-tags text-groww"></i> Theme Taxonomy (Max 5 Themes)
                 </h2>
                 
                 <div class="space-y-4">
@@ -317,9 +294,10 @@
                 <ol class="list-decimal list-inside space-y-3 text-sm text-slate-300">
                     <li>Export the trailing 8–12 weeks of reviews from Google Play Console and App Store Connect as a CSV.</li>
                     <li>Ensure columns include at minimum: <code class="bg-[#0E1A1E] px-1.5 py-0.5 rounded text-groww font-mono text-xs">platform, rating, title, text, date</code>.</li>
+                    <li>Open this dashboard on the "Dashboard" tab.</li>
                     <li>Drag and drop the CSV file into the upload zone (or click the sample test button).</li>
                     <li>Click <strong>Generate Weekly Note</strong>. The system will auto-scrub PII and classify themes client-side.</li>
-                    <li>Download the PDF/Doc from the Customer Pulse header, or use <strong>Draft an Email</strong> / <strong>Copy Email</strong> below.</li>
+                    <li>Download the PDF/Doc from the Customer Pulse header, or use <strong>Draft Email</strong> / <strong>Copy Email</strong> below.</li>
                 </ol>
             </div>
         </div>

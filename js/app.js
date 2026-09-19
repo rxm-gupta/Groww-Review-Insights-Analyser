@@ -1,6 +1,64 @@
 // Global State
 let parsedData = [];
 
+// Canonical Theme Dictionary: Descriptions & Action Ideas mapped by THEME NAME
+const THEME_KNOWLEDGE_BASE = {
+    "Market-Open Latency & Stability": {
+        desc: "Frequent app crashes, frozen charts, and network timeouts during the 09:15–09:45 AM opening rush, causing missed exits.",
+        action: {
+            title: "Market-Open Read-Only Failover Cache",
+            pod: "Infra Pod",
+            detail: "Decouple watchlist and portfolio viewing from the order execution engine to survive 09:15–09:45 AM opening load spikes."
+        }
+    },
+    "Withdrawal Latency & Settlement": {
+        desc: "Wallet is debited instantly but bank credits stall 3–5 days with repetitive scripted bot responses.",
+        action: {
+            title: "Visual Fund Settlement Tracker with UTR",
+            pod: "Payments Pod",
+            detail: "Expose real-time clearing milestones (Initiated → Clearing House → Bank UTR → Credit) in-app to eliminate support tickets."
+        }
+    },
+    "Pricing, MTF & Hidden Fees": {
+        desc: "Unexpected brokerage deductions, daily MTF margin interest, and auto square-off penalties wiping out small profits.",
+        action: {
+            title: "Pre-Trade MTF & Fee Modal",
+            pod: "Growth & Pricing",
+            detail: "Embed an upfront breakdown of daily margin interest and square-off charges on the order slip before swipe-to-trade."
+        }
+    },
+    "KYC & Account Setup": {
+        desc: "Bank proof verification rejections, document upload errors, and multi-day account activation delays.",
+        action: {
+            title: "Real-time OCR & Penny-Drop Verifier",
+            pod: "Onboarding Pod",
+            detail: "Implement client-side bank statement readability check and instant automated penny-drop retries to unblock activation."
+        }
+    },
+    "Charting & Execution Tools": {
+        desc: "TradingView chart sync delays, indicator reset glitches, and missing bracket/SL-M order options during active trades.",
+        action: {
+            title: "Client-Side Chart Engine & Indicator Cache",
+            pod: "Trading Tech",
+            detail: "Localize indicator calculation on-device to eliminate charting lag and persist custom technical indicators."
+        }
+    },
+    "Other / Support": {
+        desc: "Support ticket delays, unhelpful automated bot responses, and slow query resolution times.",
+        action: {
+            title: "Priority Support Auto-Escalation Bot",
+            pod: "Customer Ops",
+            detail: "Route financial and transactional blockers directly to human support tiers within 10 minutes."
+        }
+    }
+};
+
+const PRIORITY_BADGES = [
+    { priority: "P0 CRITICAL", badgeStyle: "bg-rose-950/50 text-rose-300 border border-rose-800/40", actionTag: "bg-rose-500/10 text-rose-400 border border-rose-500/20" },
+    { priority: "P1 HIGH", badgeStyle: "bg-amber-950/50 text-amber-300 border border-amber-800/40", actionTag: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
+    { priority: "P2 MEDIUM", badgeStyle: "bg-sky-950/50 text-sky-300 border border-sky-800/40", actionTag: "bg-sky-500/10 text-sky-400 border border-sky-500/20" }
+];
+
 // Tab Navigation
 function switchTab(tabId) {
     document.getElementById('tab-dashboard').classList.add('hide');
@@ -34,7 +92,13 @@ function classifyTheme(text) {
     return "Other / Support";
 }
 
-// Dynamically compute the date range based on the loaded CSV data
+function truncateWords(text, maxWords = 18) {
+    if (!text) return "";
+    const words = text.trim().split(/\s+/);
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
+}
+
 function getCsvDateRange(data) {
     const dates = data
         .map(r => new Date(r.date))
@@ -57,7 +121,6 @@ function getCsvDateRange(data) {
     return `(${monthNames[earliestInWeek.getMonth()]} ${earliestInWeek.getDate()} – ${monthNames[latest.getMonth()]} ${latest.getDate()}, ${latest.getFullYear()})`;
 }
 
-// File Handlers
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -75,13 +138,29 @@ function parseAndLoad(csvString) {
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-            parsedData = results.data.map(row => {
-                const fullText = (row.title || "") + " " + (row.text || "");
+            parsedData = results.data.map(rawRow => {
+                const row = {};
+                for (const k in rawRow) {
+                    if (rawRow.hasOwnProperty(k)) {
+                        row[k.trim().toLowerCase()] = rawRow[k];
+                    }
+                }
+
+                const titleText = row.title || row.subject || row.headline || "";
+                const bodyText = row.text || row.review || row.content || row.body || row.comment || "";
+                const fullText = (titleText + " " + bodyText).trim();
                 const scrubbed = scrubPII(fullText);
+
+                const rawRating = row.rating || row.score || row.stars || row['star rating'] || "0";
+                const ratingNum = parseInt(rawRating, 10) || 0;
+
+                const platform = row.platform || row.app || row.store || row.source || "Google Play";
+                const date = row.date || row['review date'] || row['created at'] || row.timestamp || "-";
+
                 return {
-                    date: row.date || "-",
-                    platform: row.platform || "Unknown",
-                    rating: parseInt(row.rating) || 0,
+                    date: date,
+                    platform: platform,
+                    rating: ratingNum,
                     originalText: scrubbed,
                     theme: row.theme || classifyTheme(scrubbed)
                 };
@@ -96,18 +175,21 @@ function showPreview() {
     document.getElementById('step-preview').classList.remove('hide');
     
     const tbody = document.getElementById('preview-tbody');
-    tbody.innerHTML = '';
+    const footerNote = document.getElementById('preview-footer-note');
+    
+    const MAX_PREVIEW_ROWS = 50;
+    const previewSubset = parsedData.slice(0, MAX_PREVIEW_ROWS);
     
     let totalRating = 0;
-    parsedData.forEach(row => {
-        totalRating += row.rating;
-        let ratingHtml = `<span class="text-amber-400 font-medium">${row.rating} ★</span>`;
-        
-        let icon = row.platform.toLowerCase().includes('apple') || row.platform.toLowerCase().includes('ios') || row.platform.toLowerCase().includes('app store') 
+    parsedData.forEach(row => totalRating += row.rating);
+
+    tbody.innerHTML = previewSubset.map(row => {
+        const ratingHtml = `<span class="text-amber-400 font-medium">${row.rating} ★</span>`;
+        const icon = row.platform.toLowerCase().includes('apple') || row.platform.toLowerCase().includes('ios') || row.platform.toLowerCase().includes('app store') 
             ? '<i class="fa-brands fa-apple text-slate-300"></i>' 
             : '<i class="fa-brands fa-google-play text-emerald-400"></i>';
 
-        tbody.innerHTML += `
+        return `
             <tr class="hover:bg-slate-800/40 transition-colors">
                 <td class="px-4 py-3 text-slate-400 whitespace-nowrap text-xs">${row.date}</td>
                 <td class="px-4 py-3 text-slate-300 whitespace-nowrap flex items-center gap-2 text-xs">${icon} ${row.platform}</td>
@@ -116,21 +198,24 @@ function showPreview() {
                 <td class="px-4 py-3 text-slate-300 truncate max-w-md text-xs" title="${row.originalText.replace(/"/g, '&quot;')}">${row.originalText}</td>
             </tr>
         `;
-    });
+    }).join('');
     
-    const avg = (totalRating / parsedData.length).toFixed(1);
-    document.getElementById('preview-stats').innerText = `${parsedData.length} rows processed · Avg Rating: ${avg} ★ · PII Scrubbed`;
+    const avg = (totalRating / (parsedData.length || 1)).toFixed(1);
+    document.getElementById('preview-stats').innerText = `${parsedData.length} reviews processed · Avg Rating: ${avg} ★ · PII Scrubbed`;
+
+    footerNote.innerText = parsedData.length > MAX_PREVIEW_ROWS 
+        ? `Displaying first ${MAX_PREVIEW_ROWS} of ${parsedData.length} rows. All rows are analyzed in the pulse note.`
+        : `All ${parsedData.length} rows loaded.`;
 }
 
 function generateNote() {
     document.getElementById('step-preview').classList.add('hide');
     document.getElementById('step-report').classList.remove('hide');
     
-    // Dynamic Date Update
     const dynamicRange = getCsvDateRange(parsedData);
     document.getElementById('date-range-display').innerText = dynamicRange;
 
-    // 1. Calculate Top 3 Themes
+    // 1. Calculate Top Themes from Negative Feedback (<= 3 Stars)
     const themeCounts = {};
     let totalNeg = 0;
     parsedData.forEach(r => {
@@ -139,67 +224,92 @@ function generateNote() {
             totalNeg++;
         }
     });
+
+    // If no negative reviews exist, pull from all reviews
+    if (totalNeg === 0 && parsedData.length > 0) {
+        parsedData.forEach(r => {
+            themeCounts[r.theme] = (themeCounts[r.theme] || 0) + 1;
+            totalNeg++;
+        });
+    }
     
     const sortedThemes = Object.entries(themeCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
 
-    const themeMeta = [
-        {
-            priority: "P0 CRITICAL",
-            badgeStyle: "bg-rose-950/50 text-rose-300 border border-rose-800/40",
-            defaultDesc: "Frequent app crashes, frozen charts, and network timeouts during the 09:15–09:45 AM opening rush, causing missed exits."
-        },
-        {
-            priority: "P1 HIGH",
-            badgeStyle: "bg-amber-950/50 text-amber-300 border border-amber-800/40",
-            defaultDesc: "Wallet is debited instantly but bank credits stall 3–5 days with repetitive scripted bot responses."
-        },
-        {
-            priority: "P2 MEDIUM",
-            badgeStyle: "bg-sky-950/50 text-sky-300 border border-sky-800/40",
-            defaultDesc: "Unexpected brokerage deductions, daily MTF margin interest, and auto square-off penalties wiping out small profits."
-        }
-    ];
-
     const gridContainer = document.getElementById('themes-grid-container');
+    const actionsContainer = document.getElementById('actions-container');
     gridContainer.innerHTML = '';
+    actionsContainer.innerHTML = '';
     
-    let rawNoteText = `TOP 3 USER FRICTION THEMES:\n`;
+    let rawNoteText = `TOP USER FRICTION THEMES:\n`;
+    let rawActionsText = `\nACTION IDEAS:\n`;
 
-    sortedThemes.forEach(([theme, count], index) => {
+    sortedThemes.forEach(([themeName, count], index) => {
         const percentage = Math.round((count / (totalNeg || 1)) * 100);
-        const meta = themeMeta[index] || { priority: "P2 LOW", badgeStyle: "bg-slate-800 text-slate-300 border border-slate-700", defaultDesc: "User friction impacting customer experience." };
+        const badge = PRIORITY_BADGES[index] || { priority: "P2 LOW", badgeStyle: "bg-slate-800 text-slate-300 border border-slate-700", actionTag: "bg-slate-800 text-slate-300 border border-slate-700" };
+        
+        // Lookup knowledge base by THEME NAME (prevents description mismatches)
+        const themeInfo = THEME_KNOWLEDGE_BASE[themeName] || {
+            desc: "Customer friction reported in app store feedback.",
+            action: { title: `${themeName} Review & Patch`, pod: "Core Product Pod", detail: "Audit customer friction points and address frequent UX blockers." }
+        };
 
+        // Render Theme Card
         gridContainer.innerHTML += `
             <div class="bg-[#0E1A1E] border border-[#182B31] rounded-2xl p-5 hover:border-slate-600 transition-all flex flex-col justify-between shadow-lg">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${meta.badgeStyle}">${percentage}% Volume</span>
-                        <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">${meta.priority}</span>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${badge.badgeStyle}">${percentage}% Volume</span>
+                        <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">${badge.priority}</span>
                     </div>
-                    <h4 class="text-base font-bold text-white mb-2 tracking-tight">${index + 1}. ${theme}</h4>
-                    <p class="text-xs text-slate-300 leading-relaxed font-normal">${meta.defaultDesc}</p>
+                    <h4 class="text-base font-bold text-white mb-2 tracking-tight">${index + 1}. ${themeName}</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed font-normal">${themeInfo.desc}</p>
                 </div>
             </div>
         `;
-        rawNoteText += `${index+1}. ${theme} (${percentage}% Volume - ${meta.priority})\n   ${meta.defaultDesc}\n\n`;
+        rawNoteText += `${index+1}. ${themeName} (${percentage}% Volume, ${badge.priority})\n`;
+
+        // Render Matching Dynamic Action Card
+        actionsContainer.innerHTML += `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0E1A1E] border border-[#182B31] p-4 rounded-xl hover:border-slate-600 transition-colors gap-4">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span class="px-2.5 py-1 ${badge.actionTag} text-[10px] font-extrabold rounded tracking-wider whitespace-nowrap">${badge.priority}</span>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">${themeInfo.action.title}</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">${themeInfo.action.detail}</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 bg-[#14252A] text-slate-400 text-[11px] font-medium rounded self-start sm:self-auto border border-[#1E353C] whitespace-nowrap">${themeInfo.action.pod}</span>
+            </div>
+        `;
+        rawActionsText += `${index+1}. [${badge.priority}] ${themeInfo.action.title} (${themeInfo.action.pod})\n`;
     });
 
-    // 2. Extract 3 Real Quotes (1-2 stars)
-    const negatives = parsedData.filter(r => r.rating <= 2);
-    const shuffled = negatives.sort(() => 0.5 - Math.random());
+    // 2. Extract Real Quotes (Prioritize 1-2 stars)
+    let candidateQuotes = parsedData.filter(r => r.rating <= 2);
+    if (candidateQuotes.length === 0) candidateQuotes = parsedData;
+    
+    const shuffled = [...candidateQuotes].sort(() => 0.5 - Math.random());
     const selectedQuotes = shuffled.slice(0, 3);
+
+    // Update section header to dynamically reflect count
+    const quotesHeader = document.getElementById('quotes-header-title');
+    if (quotesHeader) {
+        quotesHeader.innerHTML = `<i class="fa-solid fa-quote-left"></i> What Users Are Saying (${selectedQuotes.length} Real Quote${selectedQuotes.length === 1 ? '' : 's'})`;
+    }
 
     const quotesContainer = document.getElementById('quotes-container');
     quotesContainer.innerHTML = '';
-    rawNoteText += `WHAT USERS ARE SAYING (3 REAL QUOTES):\n`;
+    rawNoteText += `\nWHAT USERS ARE SAYING:\n`;
 
     selectedQuotes.forEach(q => {
-        let icon = q.platform.toLowerCase().includes('app') 
+        const icon = q.platform.toLowerCase().includes('apple') || q.platform.toLowerCase().includes('ios') || q.platform.toLowerCase().includes('app store')
             ? '<i class="fa-brands fa-apple text-slate-300"></i>' 
             : '<i class="fa-brands fa-google-play text-emerald-400"></i>';
         
+        const cleanQuote = truncateWords(q.originalText, 18);
+
         quotesContainer.innerHTML += `
             <div class="bg-[#0E1A1E] border border-[#182B31] p-4 rounded-xl">
                 <div class="flex items-start gap-3">
@@ -207,7 +317,7 @@ function generateNote() {
                         ★ ${q.rating}★
                     </div>
                     <div>
-                        <p class="text-sm text-slate-200 italic mb-2 font-normal leading-relaxed">"${q.originalText}"</p>
+                        <p class="text-sm text-slate-200 italic mb-2 font-normal leading-relaxed">"${cleanQuote}"</p>
                         <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
                             <span class="flex items-center gap-1.5 text-groww font-semibold">${icon} ${q.platform}</span>
                             <span>•</span>
@@ -217,14 +327,12 @@ function generateNote() {
                 </div>
             </div>
         `;
-        rawNoteText += `• "${q.originalText}" (${q.platform}, ${q.rating}★ - ${q.theme})\n`;
+        rawNoteText += `• "${cleanQuote}" (${q.platform}, ${q.rating}★)\n`;
     });
 
-    rawNoteText += `\nTHREE ACTION IDEAS:\n1. [P0 CORE PLATFORM] Market-Open Read-Only Failover Cache (Infra Pod)\n2. [P1 FINOPS] Visual Fund Settlement Tracker with UTR (Payments Pod)\n3. [P2 TRADING UX] Pre-Trade MTF & Fee Modal (Growth & Pricing Pod)\n`;
+    const fullEmailText = `Hi Team,\n\nHere is the latest Customer Voice & Product Health Summary:\n\n${rawNoteText}${rawActionsText}\nBest,\nCustomer Pulse Automation Team`;
 
-    const fullEmailText = `Hi Team,\n\nHere is the latest Customer Voice & Product Health Summary:\n\n${rawNoteText}\nBest Regards,\nCustomer Review Team`;
-
-    // Enforce ≤250 words
+    // Word Count Verification
     const words = fullEmailText.trim().split(/\s+/).length;
     const wordCountBadge = document.getElementById('word-count-badge');
     const wordCountText = document.getElementById('word-count-text');
@@ -237,7 +345,6 @@ function generateNote() {
         wordCountText.innerText = `${words} words (>250w Limit)`;
     }
 
-    // Populate Email Composer UI
     document.getElementById('email-subject').value = `[Product Pulse] Groww Customer Voice & Product Health Summary ${dynamicRange}`;
     document.getElementById('email-body').value = fullEmailText;
 }
@@ -257,12 +364,10 @@ function closeDownloadMenu() {
     if (menu) menu.classList.add('hidden');
 }
 
-// Close menu when clicking outside
 document.addEventListener('click', () => {
     closeDownloadMenu();
 });
 
-// 1. Download as high-fidelity PDF
 function downloadPDF() {
     closeDownloadMenu();
     const element = document.getElementById('report-card');
@@ -285,19 +390,17 @@ function downloadPDF() {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
     }).catch(err => {
-        console.error("html2pdf failed, falling back to window.print()", err);
+        console.error("html2pdf fallback to print", err);
         window.print();
         btn.innerHTML = originalHTML;
         btn.disabled = false;
     });
 }
 
-// 2. Download as Microsoft Word document (.doc)
 function downloadDoc() {
     closeDownloadMenu();
     const dateRange = document.getElementById('date-range-display').innerText;
     
-    // Extract synthesized data
     const themeCards = document.querySelectorAll('#themes-grid-container > div');
     let themesHtml = '';
     themeCards.forEach(card => {
@@ -327,6 +430,16 @@ function downloadDoc() {
         `;
     });
 
+    const actionCards = document.querySelectorAll('#actions-container > div');
+    let actionsHtml = '';
+    actionCards.forEach(card => {
+        const prio = card.querySelector('span:first-child')?.innerText || '';
+        const title = card.querySelector('h4')?.innerText || '';
+        const detail = card.querySelector('p')?.innerText || '';
+        const pod = card.querySelector('span:last-child')?.innerText || '';
+        actionsHtml += `<li><strong>[${prio}] ${title}</strong> (${pod})<br><span style="color:#475569;">${detail}</span></li>`;
+    });
+
     const docContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'><title>Groww Weekly Customer Pulse</title>
@@ -344,17 +457,15 @@ function downloadDoc() {
             <h1>Customer Voice & Product Health Summary</h1>
             <p style="color: #64748b; font-size: 10pt; margin-top: 0;">Weekly digest synthesized across Google Play Store & iOS App Store. All user identifiers strictly scrubbed.</p>
             
-            <h2>Top 3 User Friction Themes</h2>
+            <h2>Top User Friction Themes</h2>
             ${themesHtml}
 
-            <h2>What Users Are Saying (3 Real Quotes)</h2>
+            <h2>What Users Are Saying</h2>
             ${quotesHtml}
 
-            <h2>Three Action Ideas</h2>
+            <h2>Action Ideas</h2>
             <ul>
-                <li><strong>[P0 CORE PLATFORM] Market-Open Read-Only Failover Cache</strong> (Infra Pod)<br><span style="color:#475569;">Decouple watchlist and portfolio viewing from the order execution engine to survive 09:15–09:45 AM opening load spikes.</span></li>
-                <li><strong>[P1 FINOPS] Visual Fund Settlement Tracker with UTR</strong> (Payments Pod)<br><span style="color:#475569;">Expose real-time clearing milestones (Initiated &rarr; Clearing House &rarr; Bank UTR &rarr; Credit) in-app to eliminate support tickets.</span></li>
-                <li><strong>[P2 TRADING UX] Pre-Trade MTF & Fee Modal</strong> (Growth & Pricing Pod)<br><span style="color:#475569;">Embed an upfront breakdown of daily margin interest and square-off charges on the order slip before swipe-to-trade.</span></li>
+                ${actionsHtml}
             </ul>
         </body>
         </html>
@@ -371,7 +482,6 @@ function downloadDoc() {
     URL.revokeObjectURL(url);
 }
 
-// Draft Email Button
 function draftEmail() {
     const to = encodeURIComponent(document.getElementById('email-to').value.trim());
     const subject = encodeURIComponent(document.getElementById('email-subject').value);
@@ -380,7 +490,6 @@ function draftEmail() {
     window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, '_blank');
 }
 
-// Copy Email Button
 function copyEmail() {
     const bodyText = document.getElementById('email-body').value;
     const btn = document.getElementById('copy-btn');
